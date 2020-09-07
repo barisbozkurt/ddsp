@@ -45,12 +45,11 @@ def _load_audio_as_array(audio_path: str,
     expected_len = int(audio_segment.duration_seconds * sample_rate)
     # Resample to `sample_rate`
     audio_segment = audio_segment.set_frame_rate(sample_rate)
-    sample_arr = audio_segment.get_array_of_samples()
-    audio = np.array(sample_arr).astype(np.float32)
+    audio = np.array(audio_segment.get_array_of_samples()).astype(np.float32)
     # Zero pad missing samples, if any
     audio = spectral_ops.pad_or_trim_to_expected_length(audio, expected_len)
   # Convert from int to float representation.
-  audio /= np.iinfo(sample_arr.typecode).max
+  audio /= 2**(8 * audio_segment.sample_width)
   return audio
 
 
@@ -72,6 +71,29 @@ def add_loudness(ex, sample_rate, frame_rate, n_fft=2048):
   ex['loudness_db'] = mean_loudness_db.astype(np.float32)
   return ex
 
+def add_lsfs(ex, sample_rate, frame_rate):
+  """Add line spectral frequencies"""
+  beam.metrics.Metrics.counter('prepare-tfrecord', 'compute-lsfs').inc()
+  audio = ex['audio']
+  n_lsfs = 20
+  lsfs = spectral_ops.compute_lsfs(audio, 
+                                   expected_len = ex['loudness_db'].size,
+                                   n_lsfs=n_lsfs,
+                                   sample_rate=sample_rate, 
+                                   frame_size=512)
+  ex = dict(ex)
+  for i in range(n_lsfs):
+      ex['lsfs_'+str(i)] = lsfs[:,i].astype(np.float32)
+  
+  #ex['lsfs'] = np.mean(lsfs, axis=1)
+  print('audio.shape', ex['audio'].shape,
+        '\nloudness_db.shape', ex['loudness_db'].shape,
+        '\nf0_hz.shape', ex['f0_hz'].shape,
+        '\nf0_confidence.shape', ex['f0_confidence'].shape,
+        '\nlsfs_0.shape', ex['lsfs_0'].shape,
+        '\nlsfs_1.shape', ex['lsfs_1'].shape)
+  
+  return ex
 
 def _add_f0_estimate(ex, sample_rate, frame_rate):
   """Add fundamental frequency (f0) estimate using CREPE."""
@@ -100,17 +122,57 @@ def split_example(
     for window_end in range(window_size, len(sequence) + 1, hop_size):
       yield sequence[window_end-window_size:window_end]
 
-  for audio, loudness_db, f0_hz, f0_confidence in zip(
+  for audio, loudness_db, f0_hz, f0_confidence, lsfs_0, lsfs_1, lsfs_2, lsfs_3, lsfs_4, lsfs_5, lsfs_6, lsfs_7, lsfs_8, lsfs_9, lsfs_10, lsfs_11, lsfs_12, lsfs_13, lsfs_14, lsfs_15, lsfs_16, lsfs_17, lsfs_18, lsfs_19 in zip(
       get_windows(ex['audio'], sample_rate),
       get_windows(ex['loudness_db'], frame_rate),
       get_windows(ex['f0_hz'], frame_rate),
-      get_windows(ex['f0_confidence'], frame_rate)):
+      get_windows(ex['f0_confidence'], frame_rate),
+      get_windows(ex['lsfs_0'], frame_rate),
+      get_windows(ex['lsfs_1'], frame_rate),
+      get_windows(ex['lsfs_2'], frame_rate),
+      get_windows(ex['lsfs_3'], frame_rate),
+      get_windows(ex['lsfs_4'], frame_rate),
+      get_windows(ex['lsfs_5'], frame_rate),
+      get_windows(ex['lsfs_6'], frame_rate),
+      get_windows(ex['lsfs_7'], frame_rate),
+      get_windows(ex['lsfs_8'], frame_rate),
+      get_windows(ex['lsfs_9'], frame_rate),
+      get_windows(ex['lsfs_10'], frame_rate),
+      get_windows(ex['lsfs_11'], frame_rate),
+      get_windows(ex['lsfs_12'], frame_rate),
+      get_windows(ex['lsfs_13'], frame_rate),
+      get_windows(ex['lsfs_14'], frame_rate),
+      get_windows(ex['lsfs_15'], frame_rate),
+      get_windows(ex['lsfs_16'], frame_rate),
+      get_windows(ex['lsfs_17'], frame_rate),
+      get_windows(ex['lsfs_18'], frame_rate),
+      get_windows(ex['lsfs_19'], frame_rate)):
     beam.metrics.Metrics.counter('prepare-tfrecord', 'split-example').inc()
     yield {
         'audio': audio,
         'loudness_db': loudness_db,
         'f0_hz': f0_hz,
-        'f0_confidence': f0_confidence
+        'f0_confidence': f0_confidence,
+        'lsfs_0': lsfs_0,
+        'lsfs_1': lsfs_1,
+        'lsfs_2': lsfs_2,
+        'lsfs_3': lsfs_3,
+        'lsfs_4': lsfs_4,
+        'lsfs_5': lsfs_5,
+        'lsfs_6': lsfs_6,
+        'lsfs_7': lsfs_7,
+        'lsfs_8': lsfs_8,
+        'lsfs_9': lsfs_9,
+        'lsfs_10': lsfs_10,
+        'lsfs_11': lsfs_11,
+        'lsfs_12': lsfs_12,
+        'lsfs_13': lsfs_13,
+        'lsfs_14': lsfs_14,
+        'lsfs_15': lsfs_15,
+        'lsfs_16': lsfs_16,
+        'lsfs_17': lsfs_17,
+        'lsfs_18': lsfs_18,
+        'lsfs_19': lsfs_19
     }
 
 
@@ -165,7 +227,8 @@ def prepare_tfrecord(
       examples = (
           examples
           | beam.Map(_add_f0_estimate, sample_rate, frame_rate)
-          | beam.Map(add_loudness, sample_rate, frame_rate))
+          | beam.Map(add_loudness, sample_rate, frame_rate)
+          | beam.Map(add_lsfs, sample_rate, frame_rate))
 
     if window_secs:
       examples |= beam.FlatMap(

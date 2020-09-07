@@ -22,6 +22,8 @@ import gin
 import librosa
 import numpy as np
 import tensorflow.compat.v2 as tf
+from spectrum.window import create_window
+from spectrum.linear_prediction import poly2lsf
 
 CREPE_SAMPLE_RATE = 16000
 _CREPE_FRAME_SIZE = 1024
@@ -249,6 +251,43 @@ def compute_loudness(audio,
   loudness = pad_or_trim_to_expected_length(
       loudness, expected_len, -range_db, use_tf=use_tf)
   return loudness
+
+def compute_lsfs(audio, 
+                 expected_len=100,
+                 n_lsfs=20,
+                 sample_rate=16000,
+                 frame_size=512):
+  """Scaled Line spectral frequencies.
+
+  Args:
+    audio: Numpy ndarray or tensor. Shape [batch_size, audio_length] or
+      [batch_size,].
+    expected_len: Expected feature series length: this preference over 
+        frame_size roots from choice of DDSP authors in using 
+        pad_or_trim_to_expected_length() function that impose a length that 
+        may not match the ones computed using parameters like frame_size. 
+    n_lsfs: Number of LSF values to return
+    sample_rate: Audio sample rate in Hz.
+
+  Returns:
+    Line spectral frequencies. Shape [batch_size, n_lsfs] or [n_lsfs,].
+  """
+
+  window_func = create_window(frame_size, name = 'hanning')
+
+  LSFS = np.zeros((expected_len, n_lsfs))
+  start_indexes = np.linspace(0,audio.size-frame_size-1,num=expected_len,endpoint=True).astype('int')
+  
+  for window_index in range(expected_len):
+    #WINDOWING
+    start_index = start_indexes[window_index]
+    windowed_sig = np.multiply(audio[start_index : start_index + frame_size], window_func)
+  
+    #ANALYSIS: LSF parameter extraction
+    a = librosa.lpc(windowed_sig, n_lsfs)
+    lsfs = np.array(poly2lsf(a)) / np.pi #division by PI will put lsfs in 0-1 range
+    LSFS[window_index] = lsfs
+  return LSFS
 
 
 @gin.register

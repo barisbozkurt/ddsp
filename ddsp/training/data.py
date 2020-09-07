@@ -217,7 +217,46 @@ class RecordProvider(DataProvider):
             tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
         'loudness_db':
             tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
-    }
+        'lsfs_0':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_1':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_2':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_3':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_4':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_5':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_6':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_7':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_8':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_9':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_10':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_11':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_12':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_13':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_14':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_15':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_16':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_17':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_18':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),
+        'lsfs_19':
+            tf.io.FixedLenFeature([self._feature_length], dtype=tf.float32),}
 
 
 @gin.register

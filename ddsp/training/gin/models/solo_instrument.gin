@@ -14,7 +14,7 @@ RnnFcDecoder.rnn_channels = 512
 RnnFcDecoder.rnn_type = 'gru'
 RnnFcDecoder.ch = 512
 RnnFcDecoder.layers_per_stack = 3
-RnnFcDecoder.input_keys = ('ld_scaled', 'f0_scaled')
+RnnFcDecoder.input_keys = ('ld_scaled', 'f0_scaled','f0_confidence','lsfs_0','lsfs_1','lsfs_2','lsfs_3','lsfs_4','lsfs_5','lsfs_6','lsfs_7','lsfs_8','lsfs_9','lsfs_10','lsfs_11','lsfs_12','lsfs_13','lsfs_14','lsfs_15','lsfs_16','lsfs_17','lsfs_18','lsfs_19')
 RnnFcDecoder.output_splits = (('amps', 1),
                               ('harmonic_distribution', 60),
                               ('noise_magnitudes', 65))

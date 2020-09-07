@@ -61,6 +61,18 @@ def compute_audio_features(audio,
 
   audio_feats['loudness_db'] = ddsp.spectral_ops.compute_loudness(
       audio, sample_rate, frame_rate, n_fft)
+  
+  audio_feats['lsfs'] = ddsp.spectral_ops.compute_lsfs(
+      audio, 
+      expected_len = audio_feats['loudness_db'].size, 
+      n_lsfs=20, 
+      sample_rate=sample_rate, 
+      frame_size=512)
+  
+  n_lsfs = audio_feats['lsfs'].shape[1]
+  for i in range(n_lsfs):
+    audio_feats['lsfs_'+str(i)] = audio_feats['lsfs'][:,i].astype(np.float32)
+
 
   audio_feats['f0_hz'], audio_feats['f0_confidence'] = (
       ddsp.spectral_ops.compute_f0(audio, sample_rate, frame_rate))
